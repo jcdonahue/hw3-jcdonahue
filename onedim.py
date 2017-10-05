@@ -3,9 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 
-Nx = 20
-a = 0.0
-b = 1.0
+Nx = 500
+a = -1.0
+b = 2.0
 dx  = 0.1
 cfl = 0.5
 dx = (b-a)/Nx
@@ -16,8 +16,8 @@ def sodshock(x0,PL,rhoL,vL,PR,rhoR,vR):
     gamma = 1.4
     momenR = rhoR*vR
     momenL = rhoL*vL
-    ER = (PR/(gamma-1))+0.5*rhoR*vR**2
-    EL = (PL/(gamma-1))+0.5*rhoL*vL**2
+    ER = (PR/(gamma-1))+0.5*rhoR*np.power(vR, 2.0)
+    EL = (PL/(gamma-1))+0.5*rhoL*vL*np.power(vL,2.0)
     u = np.zeros([Nx,3])
     for i in range(len(x)):
         if x[i] < x0:
@@ -54,7 +54,7 @@ def getDt(u):
     gamma = 1.4
     v = u[:,1]/u[:,0]
     rhov2 = .5*v[:]*u[:,1]
-    cs = np.sqrt(gamma*(gamma-1)*(u[:,2]-rhov2[:])/u[:,0])
+    cs = np.sqrt(gamma*(gamma-1.0)*(u[:,2]-rhov2[:])/u[:,0])
 
     for i in range(Nx-1):
         ap[i] = max(0, v[i]+cs[i],v[i+1]+cs[i+1])
@@ -73,7 +73,7 @@ def Lu(u):
     am = np.empty(Nx-1)
     v = u[:,1]/u[:,0]
     rhov2 = .5*v[:]*u[:,1]
-    cs = np.sqrt(gamma*(gamma-1)*(u[:,2]-rhov2[:])/u[:,0])
+    cs = np.sqrt(gamma*(gamma-1.0)*(u[:,2]-rhov2[:])/u[:,0])
         
     for i in range(Nx-1):
          ap[i] = max(0, v[i]+cs[i],v[i+1]+cs[i+1])
@@ -81,8 +81,8 @@ def Lu(u):
             
     F = np.zeros([Nx,3])
     F[:,0] = u[:,1]
-    F[:,1] = (gamma-1)*u[:,2] + (3-gamma)*rhov2[:]
-    F[:,2] =  (gamma-1)*v[:]*(2*u[:,2]-v[:]*rhov2[:])
+    F[:,1] = (gamma-1)*u[:,2] + (3.0-gamma)*rhov2[:]
+    F[:,2] =  (gamma-1)*v[:]*(2.0*u[:,2]-v[:]*rhov2[:])
     FL = F[:-1]
     FR = F[1:]
     uL = u[:-1]
@@ -106,7 +106,7 @@ def plot(t, x, ax=None, filename=None):
     else:
         fig = ax.get_figure()
             
-    ax.plot(x, u[:,0], 'k+')
+    ax.plot(x, u[:,0], '-')
     ax.set_xlabel(r'$X$')
     ax.set_ylabel(r'$U$')
     ax.set_title("t = "+str(t))
