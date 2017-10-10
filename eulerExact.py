@@ -181,11 +181,11 @@ if __name__ == "__main__":
 
     import matplotlib.pyplot as plt
     
-    a = -1.0
+    a = 0.0
     b = 1.0
-    x0 = 0.0
+    x0 = 0.5
     N = 1000
-    t = 0.25
+    t = 0.15
 
     rhoL = 1.0
     PL = 1.0
@@ -202,23 +202,23 @@ if __name__ == "__main__":
     ax1[1].plot(X, v)
     ax1[2].plot(X, P)
 
-    a = 0.0
-    b = 2.0
-    x0 = 0.5
-    sigma = 0.3
-    N = 1000
-    t = 0.7
+    # a = 0.0
+    # b = 2.0
+    # x0 = 0.5
+    # sigma = 0.3
+    # N = 1000
+    # t = 0.7
 
-    rho0 = 1.0
-    P0 = 1.0
-    alpha = 0.1
-    gamma = 5.0/3.0
+    # rho0 = 1.0
+    # P0 = 1.0
+    # alpha = 0.1
+    # gamma = 5.0/3.0
     
-    X, rho, v, P = isentropicWave(a, b, N, t, x0, sigma, alpha, gamma, 
-                                    rho0, P0)
-    fig2, ax2 = plt.subplots(3,1)
-    ax2[0].plot(X, rho)
-    ax2[1].plot(X, v)
-    ax2[2].plot(X, P)
+    # X, rho, v, P = isentropicWave(a, b, N, t, x0, sigma, alpha, gamma, 
+    #                                 rho0, P0)
+    # fig2, ax2 = plt.subplots(3,1)
+    # ax2[0].plot(X, rho)
+    # ax2[1].plot(X, v)
+    # ax2[2].plot(X, P)
 
-    plt.show()
+    # plt.show()
