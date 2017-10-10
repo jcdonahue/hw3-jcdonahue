@@ -8,7 +8,7 @@ a = 0
 b = 1.0
 dx  = 0.1
 cfl = 0.5
-dx = (b-a)/Nx
+#dx = (b-a)/Nx
 x = a + dx*(np.arange(Nx)+0.5)
 
 
@@ -30,24 +30,24 @@ def sodshock(x0,PL,rhoL,vL,PR,rhoR,vR):
             u[i,2] = ER
     return u
 
-def evolve(u, tfinal):
+def evolve(u,dx, tfinal):
     t = 0.0
     while t < tfinal:
         # Get dt for this timestep.
         # Don't go past tfinal!
-        dt = getDt(u)
+        dt = getDt(u,dx)
         if t + dt > tfinal:
             dt = tfinal - t
         
         #Calculate fluxes
-        udot = Lu(u)
+        udot = Lu(u,dx)
         
         #update u
         u[:] += dt*udot
         t += dt
     return u
             
-def getDt(u):
+def getDt(u,dx):
     Nx = len(u)
     ap = np.empty(Nx-1)
     am = np.empty(Nx-1)
@@ -70,7 +70,7 @@ def getDt(u):
     DT = cfl*dx/maxalpha
     return DT
 
-def Lu(u):
+def Lu(u,dx):
     gamma = 1.4
     Nx = len(u)
     ap = np.empty(Nx-1)

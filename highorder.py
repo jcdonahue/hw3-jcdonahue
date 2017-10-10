@@ -2,19 +2,19 @@ from __future__ import division
 import numpy as np
 import matplotlib.pyplot as plt
 
-Nx = 400
-a = 0
+
+a = 0.0
 b = 1.0
-dx  = 0.1
 cfl = 0.5
-dx = (b-a)/Nx
-x = a + dx*(np.arange(Nx)+0.5)
+
 
 def minmod(x,y,z):
     return .25*np.fabs(np.sign(x)+np.sign(y))*(np.sign(x)+np.sign(z))*min(np.fabs(x),np.fabs(y),np.fabs(z))
 
 
-def sodshock(x0,PL,rhoL,vL,PR,rhoR,vR):
+def sodshock(Nx,x0,PL,rhoL,vL,PR,rhoR,vR):
+    dx = (b-a)/Nx
+    x = a + dx*(np.arange(Nx)+0.5)
     gamma = 1.4
     momenR = rhoR*vR
     momenL = rhoL*vL
@@ -32,27 +32,27 @@ def sodshock(x0,PL,rhoL,vL,PR,rhoR,vR):
             u[i,2] = ER
     return u
 
-def higherevolve(u, tfinal):
+def higherevolve(u,dx,tfinal):
     t = 0.0
     while t < tfinal:
         # Get dt for this timestep.
         # Don't go past tfinal!
         uinter0  = uinterpol(u)
         alpha = apam(uinter0)
-        dt = hgetDt(alpha[2],alpha[3])
+        dt = hgetDt(alpha[2],alpha[3],dx)
         if t + dt > tfinal:
             dt = tfinal - t
         
         #Calculate fluxes
-        Lu0 = hLu(alpha[0],alpha[1],alpha[2],alpha[3],uinter0)
+        Lu0 = hLu(alpha[0],alpha[1],alpha[2],alpha[3],uinter0,dx)
         u1 = u + dt*Lu0
         uinter1 = uinterpol(u1)
         alpha = apam(uinter1)
-        Lu1 = hLu(alpha[0],alpha[1],alpha[2],alpha[3],uinter1)
+        Lu1 = hLu(alpha[0],alpha[1],alpha[2],alpha[3],uinter1,dx)
         u2 = 0.75*u+0.25*u1+.25*dt*Lu1
         uinter2 = uinterpol(u2)
         alpha = apam(uinter2)
-        Lu2 = hLu(alpha[0],alpha[1],alpha[2],alpha[3],uinter2)
+        Lu2 = hLu(alpha[0],alpha[1],alpha[2],alpha[3],uinter2,dx)
         u = (u + 2.0*u2 + 2.0*dt*Lu2)/3.0
         t += dt
     return u
@@ -83,16 +83,16 @@ def apam(u):
     for i in range(Nx):
             ap[i] = max(0, v[i,0]+cs[i,0],v[i,1]+cs[i,1])
             am[i] = max(0,-(v[i,0]-cs[i,0]),-(v[i,1]-cs[i,1]))
-    return (v, rhov2, ap, am)
+    return (v, rhov2, ap, am,cs)
             
-def hgetDt(ap,am):
+def hgetDt(ap,am,dx):
     maxalphaplus = np.fabs(ap).max()
     maxalphamin = np.fabs(am).max()
     maxalpha =  max(maxalphamin,maxalphaplus)
     DT = cfl*dx/maxalpha
     return DT
 
-def hLu(v,rhov2,ap,am,u):
+def hLu(v,rhov2,ap,am,u,dx):
     gamma = 1.4
     Nx = len(u)
             
@@ -115,10 +115,12 @@ def hLu(v,rhov2,ap,am,u):
     return LU
 
 
-def hplot(t, x, ax=None, filename=None):
+def hplot(N,t,ax=None, filename=None):
+    dx = (b-a)/N
+    x = a + dx*(np.arange(N)+0.5)
     gamma = 1.4
-    u = sodshock(.5,1,1,0,.125,.1,0)
-    u = higherevolve(u,.15)
+    u = sodshock(N,.5,1,1,0,.125,.1,0)
+    u = higherevolve(u,dx,t)
     v = u[:,1]/u[:,0]
     rhov2 = .5*v[:]*u[:,1]
     P = (gamma-1.0)*(u[:,2]-rhov2[:])

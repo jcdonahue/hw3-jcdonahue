@@ -66,26 +66,33 @@ def specentr(P,rho,dx,P0,rho0):
         integral += dx*np.fabs(np.log((P[i]/P0)*np.power((rho[i]/rho0),-gammai))/(gammai-1.0))
     return integral
 
-                          
+
+test = eul.isentropicWave(ai, bi, 100, 0, x0i, sigma, alpha, gammai, rho0, P0,
+                    TOL=1.0e-10)
+init = np.zeros([100,3])
+for i in range(1,4):
+    init[:,i-1]=test[i]
+final = higherevolve(init,.01,.35)
+
 def convergence(T,N,q,r):
     dx = (b-a)/N
     x = a + dx*(np.arange(N)+0.5)
     if q == 0:
         Xex, rhoex, vex, Pex  = eul.riemann(a, b, x0, N, T, rhoL, vL, PL, rhoR, vR, PR, gamma, 
                 TOL=1.0e-14, MAX=100)
-        u = varsodshock(x, x0, N, PL, rhoL, vL, PR, rhoR, vR)
+        init = varsodshock(x, x0, N, PL, rhoL, vL, PR, rhoR, vR)
     elif q == 1:
         Xex, rhoex, vex, Pex  = eul.isentropicWave(ai, bi, N, T, x0i, sigma, alpha, gammai, rho0, P0,
                     TOL=1.0e-10)
         listic = eul.isentropicWave(ai, bi, N, 0, x0i, sigma, alpha, gammai, rho0, P0,
                     TOL=1.0e-10)
-        u = np.zeros([N,3])
+        init = np.zeros([N,3])
         for i in range(1,4):
-            u[:,i-1]=listic[i]
+            init[:,i-1]=listic[i]
     if r == 0:
-        u = one.evolve(u, T)
+        u = one.evolve(init,dx,T)
     elif r == 1:
-        u = higherevolve(u, T)
+        u = higherevolve(init,dx,T)
     rhoap =  u[:,0]
     vap =  u[:,1]/u[:,0]
     rhov2 = .5*vap[:]*u[:,1]
@@ -97,27 +104,30 @@ def convergence(T,N,q,r):
         error[2] = errorcomp(Pap,Pex,dx)
     elif q ==1:
         error[:]= specentr(Pap,rhoap,dx,P0,rho0)
+    # fig1,ax1 = plt.subplots(1,1)
+    # ax1.plot(x,rhoap,'r-')
+    # ax1.plot(x,rhoex,'b-')
     return error
 
 
-def errorplot(T, N,q,r, ax=None, filename=None):
+def errorplot(T,N,q,r, filename=None):
     terms = len(N)
     a = np.zeros([terms, 3])
     for i in range(terms):
-        a[i] = convergence(T,N[i], q, r)
+        a[i] = convergence(T,N[i],q,r)
     if q == 0:
         fig1, ax1 = plt.subplots(3,1)
-        ax1[0].plot(np.log(N), np.log(a[:,0]),'b-')
+        ax1[0].plot(np.log(N), np.log(a[:,0]),'ko')
         ax1[0].set_title("t = "+str(T))
         ax1[0].set_ylabel(r'$\rho$ Log Error')
-        ax1[1].plot(np.log(N), np.log(a[:,1]),'b-')
+        ax1[1].plot(np.log(N), np.log(a[:,1]),'ko')
         ax1[1].set_ylabel(r'$V$ Log Error')
-        ax1[2].plot(np.log(N), np.log(a[:,2]), 'b-')
+        ax1[2].plot(np.log(N), np.log(a[:,2]), 'ko')
         ax1[2].set_xlabel(r'Log $N$')
         ax1[2].set_ylabel(r'$P$ Log Error')
     elif q ==1:
         fig1,ax1 = plt.subplots(1,1)
-        ax1.plot(np.log(N),np.log(a[:,0]),'b-')
+        ax1.plot(np.log(N),np.log(a[:,0]),'ko')
         ax1.set_title("t = "+str(T))
         ax1.set_xlabel(r'Log $N$')              
         ax1.set_ylabel(r'$s$ Log Error')

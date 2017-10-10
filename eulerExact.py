@@ -119,7 +119,7 @@ def riemann(a, b, x0, N, T, rhoL, vL, PL, rhoR, vR, PR, gamma,
 
     return X, rho, v, P
 
-def isentropicWave(a, b, N, t, x0, sigma, alpha, gamma, rho0=1.0, P0=1.0,
+def isentropicWave(a, b, N, t, x0, sigma, alpha, gamma, rho0, P0,
                     TOL=1.0e-10):
     # Returns an isentropic wave, evolved for a time t on a grid of N cells on
     # [a,b]. The initial wave is centered at x0, has width sigma, and strength
@@ -181,26 +181,26 @@ if __name__ == "__main__":
 
     import matplotlib.pyplot as plt
     
-    a = 0.0
-    b = 1.0
-    x0 = 0.5
-    N = 1000
-    t = 0.15
+    # a = 0.0
+    # b = 1.0
+    # x0 = 0.5
+    # N = 1000
+    # t = 0.15
 
-    rhoL = 1.0
-    PL = 1.0
-    vL = 0.0
-    rhoR = 0.1
-    PR = 0.125
-    vR = 0.0
-    gamma = 1.4
+    # rhoL = 1.0
+    # PL = 1.0
+    # vL = 0.0
+    # rhoR = 0.1
+    # PR = 0.125
+    # vR = 0.0
+    # gamma = 1.4
     
-    X, rho, v, P = riemann(a, b, x0, N, t, rhoL, vL, PL, rhoR, vR, PR, gamma)
+    # X, rho, v, P = riemann(a, b, x0, N, t, rhoL, vL, PL, rhoR, vR, PR, gamma)
 
-    fig1, ax1 = plt.subplots(3,1)
-    ax1[0].plot(X, rho)
-    ax1[1].plot(X, v)
-    ax1[2].plot(X, P)
+    # fig1, ax1 = plt.subplots(3,1)
+    # ax1[0].plot(X, rho)
+    # ax1[1].plot(X, v)
+    # ax1[2].plot(X, P)
 
     # a = 0.0
     # b = 2.0
