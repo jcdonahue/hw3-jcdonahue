@@ -3,9 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 
-Nx = 500
-a = -1.0
-b = 2.0
+Nx = 2000
+a = 0
+b = 1.0
 dx  = 0.1
 cfl = 0.5
 dx = (b-a)/Nx
@@ -54,7 +54,11 @@ def getDt(u):
     gamma = 1.4
     v = u[:,1]/u[:,0]
     rhov2 = .5*v[:]*u[:,1]
-    cs = np.sqrt(gamma*(gamma-1.0)*(u[:,2]-rhov2[:])/u[:,0])
+    cs = gamma*(gamma-1.0)*(u[:,2]-rhov2[:])/u[:,0]
+    for i in range(Nx):
+        if cs[i]<0:
+            cs[i] =0
+    cs = np.sqrt(cs)
 
     for i in range(Nx-1):
         ap[i] = max(0, v[i]+cs[i],v[i+1]+cs[i+1])
@@ -73,7 +77,11 @@ def Lu(u):
     am = np.empty(Nx-1)
     v = u[:,1]/u[:,0]
     rhov2 = .5*v[:]*u[:,1]
-    cs = np.sqrt(gamma*(gamma-1.0)*(u[:,2]-rhov2[:])/u[:,0])
+    cs = gamma*(gamma-1.0)*(u[:,2]-rhov2[:])/u[:,0]
+    for i in range(Nx):
+        if cs[i]<0:
+            cs[i] =0
+    cs = np.sqrt(cs)
         
     for i in range(Nx-1):
          ap[i] = max(0, v[i]+cs[i],v[i+1]+cs[i+1])
@@ -81,8 +89,8 @@ def Lu(u):
             
     F = np.zeros([Nx,3])
     F[:,0] = u[:,1]
-    F[:,1] = (gamma-1)*u[:,2] + (3.0-gamma)*rhov2[:]
-    F[:,2] =  (gamma-1)*v[:]*(2.0*u[:,2]-v[:]*rhov2[:])
+    F[:,1] = (gamma-1.0)*u[:,2] + (3.0-gamma)*rhov2[:]
+    F[:,2] =  v[:]*(gamma*u[:,2]-(gamma-1.0)*rhov2[:])
     FL = F[:-1]
     FR = F[1:]
     uL = u[:-1]
@@ -99,8 +107,12 @@ def Lu(u):
 
 
 def plot(t, x, ax=None, filename=None):
+    gamma = 1.4
     u = sodshock(.5,1,1,0,.125,.1,0)
     u = evolve(u, t)
+    v = u[:,1]/u[:,0]
+    rhov2 = .5*v[:]*u[:,1]
+    P = (gamma-1.0)*(u[:,2]-rhov2[:])
     if ax is None:
         fig, ax = plt.subplots(1,1)
     else:
