@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import eulerExact as eul
+import leastsquares as ls
 #import highorder as high
 
 from highorder import apam, uinterpol, hLu, hgetDt, higherevolve
@@ -113,16 +114,26 @@ def convergence(T,N,q,r):
 def errorplot(T,N,q,r, filename=None):
     terms = len(N)
     a = np.zeros([terms, 3])
+    fits = np.zeros([3,2])
     for i in range(terms):
         a[i] = convergence(T,N[i],q,r)
+    lN = np.log10(N)
+    la = np.log10(a)
+    for i in range (3):
+        least = ls.leastsquares(lN,la[:,i])
+        fits[i,0] = least[0]
+        fits[i,1] = least[1]
     if q == 0:
         fig1, ax1 = plt.subplots(3,1)
-        ax1[0].plot(np.log(N), np.log(a[:,0]),'ko')
+        ax1[0].plot(lN, la[:,0],'ko')
+        ax1[0].plot(lN,fits[0,0]*lN+fits[0,1],'k-')
         ax1[0].set_title("t = "+str(T))
         ax1[0].set_ylabel(r'$\rho$ Log Error')
-        ax1[1].plot(np.log(N), np.log(a[:,1]),'ko')
+        ax1[1].plot(lN, la[:,1],'ko')
+        ax1[1].plot(lN,fits[1,0]*lN+fits[1,1],'k-')
         ax1[1].set_ylabel(r'$V$ Log Error')
-        ax1[2].plot(np.log(N), np.log(a[:,2]), 'ko')
+        ax1[2].plot(lN, la[:,2], 'ko')
+        ax1[2].plot(lN,fits[2,0]*lN+fits[2,1],'k-')
         ax1[2].set_xlabel(r'Log $N$')
         ax1[2].set_ylabel(r'$P$ Log Error')
     elif q ==1:
