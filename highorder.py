@@ -1,6 +1,7 @@
 from __future__ import division
 import numpy as np
 import matplotlib.pyplot as plt
+import eulerExact as eul
 
 
 a = 0.0
@@ -119,7 +120,11 @@ def hplot(N,t,ax=None, filename=None):
     dx = (b-a)/N
     x = a + dx*(np.arange(N)+0.5)
     gamma = 1.4
-    u = sodshock(N,.5,1,1,0,.125,.1,0)
+    #u = sodshock(N,.5,1,1,0,.125,.1,0)
+    init = eul.isentropicWave(0.0, 2.0, N, 0, 1, 0.4, 0.2, 5.0/3.0, 1.0, 0.6,TOL=1.0e-10)
+    u = np.zeros([N,3])
+    for i in range(1,4):
+        u[:,i-1]=init[i]
     u = higherevolve(u,dx,t)
     v = u[:,1]/u[:,0]
     rhov2 = .5*v[:]*u[:,1]
@@ -142,7 +147,7 @@ def hplot(N,t,ax=None, filename=None):
         fig.savefig(filename)
             
     return ax
-    
+
 
 # def saveTxt(self, filename):
 #         f = open(filename, "w")
