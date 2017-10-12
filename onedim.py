@@ -2,13 +2,14 @@ from __future__ import division
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
+import eulerExact as eul
 
-Nx = 2000
+Nx = 1000
 a = 0
 b = 1.0
 dx  = 0.1
 cfl = 0.5
-#dx = (b-a)/Nx
+dx = (b-a)/Nx
 x = a + dx*(np.arange(Nx)+0.5)
 
 
@@ -105,28 +106,37 @@ def Lu(u,dx):
 
     return LU
 
-
-def plot(t, x, ax=None, filename=None):
+def plot(t, x, ax1=None, filename=None):
     gamma = 1.4
     u = sodshock(.5,1,1,0,.125,.1,0)
-    u = evolve(u, t)
+    exact = eul.riemann(a, b, 0.5, Nx, t, 1, 0, 1, 0.1, 0, .125, gamma, 
+                TOL=1.0e-14, MAX=100)
+    u = evolve(u, dx,t)
     v = u[:,1]/u[:,0]
     rhov2 = .5*v[:]*u[:,1]
     P = (gamma-1.0)*(u[:,2]-rhov2[:])
-    if ax is None:
-        fig, ax = plt.subplots(1,1)
+    if ax1 is None:
+        fig, ax1 = plt.subplots(3,1)
     else:
-        fig = ax.get_figure()
+        fig = ax1.get_figure()
             
-    ax.plot(x, u[:,0], '-')
-    ax.set_xlabel(r'$X$')
-    ax.set_ylabel(r'$U$')
-    ax.set_title("t = "+str(t))
+    ax1[0].plot(x, u[:,0],'k--')
+    ax1[0].plot(x, exact[1],'k-')
+    ax1[0].set_title("t = "+str(t))
+    ax1[0].set_ylabel(r'$rho$')
+    ax1[1].plot(x, v,'k--')
+    ax1[1].plot(x, exact[2],'k-')
+    ax1[1].set_ylabel(r'$V$')
+    ax1[2].plot(x, P, 'k--')
+    ax1[2].plot(x, exact[3],'k-')
+    ax1[2].set_xlabel(r'$X$')
+    ax1[2].set_ylabel(r'$P$')
+    ax1[0].set_title("t = "+str(t))
         
     if filename is not None:
         fig.savefig(filename)
             
-    return ax
+    return ax1
     
 
 # def saveTxt(self, filename):

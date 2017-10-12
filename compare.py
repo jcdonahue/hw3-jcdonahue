@@ -45,11 +45,9 @@ bi = 2.0
 x0i = 0.5
 sigma = 0.4
 alpha = 0.2
-gammai = 5./3
+gammai = 5.0/3.0
 rho0 = 1
 P0 = 0.6
-initial = eul.isentropicWave(ai, bi, 40, 0, x0i, sigma, alpha, gammai, rho0, P0,
-                    TOL=1.0e-10)
 
 
 
@@ -68,36 +66,41 @@ def specentr(P,rho,dx,P0,rho0):
     return integral
 
 
-test = eul.isentropicWave(ai, bi, 100, 0, x0i, sigma, alpha, gammai, rho0, P0,
-                    TOL=1.0e-10)
-init = np.zeros([100,3])
-for i in range(1,4):
-    init[:,i-1]=test[i]
-final = higherevolve(init,.01,.35)
+# test = eul.isentropicWave(ai, bi, 100, 0, x0i, sigma, alpha, gammai, rho0, P0,
+#                     TOL=1.0e-10)
+# init = np.zeros([100,3])
+# for i in range(1,4):
+#     init[:,i-1]=test[i]
+# final = higherevolve(init,.01,.35)
 
 def convergence(T,N,q,r):
-    dx = (b-a)/N
-    x = a + dx*(np.arange(N)+0.5)
     if q == 0:
+        dx = (b-a)/N
+        x = a + dx*(np.arange(N)+0.5)
+        g = gamma
         Xex, rhoex, vex, Pex  = eul.riemann(a, b, x0, N, T, rhoL, vL, PL, rhoR, vR, PR, gamma, 
                 TOL=1.0e-14, MAX=100)
         init = varsodshock(x, x0, N, PL, rhoL, vL, PR, rhoR, vR)
     elif q == 1:
+        dx = (bi-ai)/N
+        x = ai + dx*(np.arange(N)+0.5)
+        g = gammai
         Xex, rhoex, vex, Pex  = eul.isentropicWave(ai, bi, N, T, x0i, sigma, alpha, gammai, rho0, P0,
                     TOL=1.0e-10)
         listic = eul.isentropicWave(ai, bi, N, 0, x0i, sigma, alpha, gammai, rho0, P0,
                     TOL=1.0e-10)
         init = np.zeros([N,3])
-        for i in range(1,4):
-            init[:,i-1]=listic[i]
+        init[:,0]=listic[1]
+        init[:,1]=listic[1]*listic[2]
+        init[:,2]=0.5*listic[1]*listic[2]*listic[2]+(listic[3]/(gammai-1))
     if r == 0:
         u = one.evolve(init,dx,T)
     elif r == 1:
-        u = higherevolve(init,dx,T)
+        u = higherevolve(init,dx,g,T)
     rhoap =  u[:,0]
     vap =  u[:,1]/u[:,0]
     rhov2 = .5*vap[:]*u[:,1]
-    Pap = (gamma-1.0)*(u[:,2]-rhov2[:])
+    Pap = (g-1.0)*(u[:,2]-rhov2[:])
     error  = np.zeros(3)
     if q == 0:
         error[0] = errorcomp(rhoap,rhoex,dx)
@@ -119,6 +122,7 @@ def errorplot(T,N,q,r, filename=None):
         a[i] = convergence(T,N[i],q,r)
     lN = np.log10(N)
     la = np.log10(a)
+    print a
     for i in range (3):
         least = ls.leastsquares(lN,la[:,i])
         fits[i,0] = least[0]
@@ -126,19 +130,24 @@ def errorplot(T,N,q,r, filename=None):
     if q == 0:
         fig1, ax1 = plt.subplots(3,1)
         ax1[0].plot(lN, la[:,0],'ko')
-        ax1[0].plot(lN,fits[0,0]*lN+fits[0,1],'k-')
+        p0, = ax1[0].plot(lN,fits[0,0]*lN+fits[0,1],'k-',label = '%.4f' % fits[0,0])
         ax1[0].set_title("t = "+str(T))
         ax1[0].set_ylabel(r'$\rho$ Log Error')
+        l0 = ax1[0].legend(handles=[p0],loc=1)
         ax1[1].plot(lN, la[:,1],'ko')
-        ax1[1].plot(lN,fits[1,0]*lN+fits[1,1],'k-')
+        p1, = ax1[1].plot(lN,fits[1,0]*lN+fits[1,1],'k-',label = '%.4f' % fits[1,0])
         ax1[1].set_ylabel(r'$V$ Log Error')
+        l1 = ax1[1].legend(handles=[p1],loc=1)
         ax1[2].plot(lN, la[:,2], 'ko')
-        ax1[2].plot(lN,fits[2,0]*lN+fits[2,1],'k-')
+        p2, = ax1[2].plot(lN,fits[2,0]*lN+fits[2,1],'k-',label = '%.4f' % fits[2,0])
+        l2 = ax1[2].legend(handles=[p2],loc=1)
         ax1[2].set_xlabel(r'Log $N$')
         ax1[2].set_ylabel(r'$P$ Log Error')
     elif q ==1:
         fig1,ax1 = plt.subplots(1,1)
-        ax1.plot(np.log(N),np.log(a[:,0]),'ko')
+        ax1.plot(lN,la[:,0],'ko')
+        p1, = ax1.plot(lN,fits[0,0]*lN+fits[0,1],'k-',label = '%.4f' % fits[0,0])
+        l1 = ax1.legend(handles=[p1],loc=1)
         ax1.set_title("t = "+str(T))
         ax1.set_xlabel(r'Log $N$')              
         ax1.set_ylabel(r'$s$ Log Error')
